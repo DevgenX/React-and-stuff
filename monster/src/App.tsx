@@ -1,22 +1,35 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import CardList from "./components/card-list/cardlist";
 import SearchBox from "./components/search-box/searchbox";
 import "./App.css";
+import { getData } from "./utils/data.utils";
 
-// use state gives us back an array of two values
+export type Monster = {
+  id: string;
+  name: string;
+  email: string;
+};
 
 const App = () => {
-  // the web re-renders when the state value changes
-  const [searchBy, setSearchBy] = useState(""); //[value, setValue]
-  const [monsters, setMonsters] = useState([]); // inital value is an empty array
+  const [searchBy, setSearchBy] = useState("");
+  const [monsters, setMonsters] = useState<Monster[]>([]);
   const [filteredMonsters, setFilteredMonsters] = useState(monsters); //
 
-  const handleInputChange = (e) => {
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const users = await getData<Monster[]>(
+        "https://jsonplaceholder.typicode.com/users"
+      );
+      setMonsters(users);
+    };
+
+    fetchUsers();
+  }, []);
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const searchField = e.target.value.toLocaleLowerCase();
     setSearchBy(searchField);
   };
-  // Accepts two arguments, a callback function and array of dependecies
-  // When an array of dependencies is changed, the callback function will run
 
   useEffect(() => {
     const newFilteredMonsters = monsters.filter((monster) => {
@@ -24,16 +37,6 @@ const App = () => {
     });
     setFilteredMonsters(newFilteredMonsters);
   }, [monsters, searchBy]);
-
-  useEffect(() => {
-    getUserList();
-  }, []);
-
-  const getUserList = async () => {
-    const response = await fetch("https://jsonplaceholder.typicode.com/users");
-    const data = await response.json();
-    setMonsters(data);
-  };
 
   return (
     <div className="App">
